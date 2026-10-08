@@ -11,3 +11,6 @@
 **/app/installed-files.txt
 *.log
 .DS_Store
+*.pfx
+*.p12
+*.key

@@ -22,3 +22,4 @@ jobs:
           node fetch-sdk.mjs
           Expand-Archive -LiteralPath vendor/webview2.zip -DestinationPath vendor/webview2 -Force
           ./build.ps1
+          ./tests/SigningTests.ps1

@@ -54,9 +54,11 @@ Expand-Archive -LiteralPath vendor/webview2.zip -DestinationPath vendor/webview2
 
 Outputs appear in yue-windows/build. The Windows build automatically copies md-reader/dist into app/ui; keep both directories next to each other. The source archive includes the UI snapshot for standalone Windows builds. No registry changes are made by build tests.
 
+`build.ps1` creates an unsigned development build. Public signed EXE/portable releases use `yue-windows/release.ps1`, which signs the reader and uninstaller before embedding them, then signs the installer and verifies every payload before export. It requires an approved signing identity; **the published 1.2.1 preview is still unsigned**. See [Windows signing setup](docs/WINDOWS-SIGNING.md).
+
 ## Verify
 
-With the reader server running, install development dependencies in md-reader, then run `npm run check`, `npm run test:highlights` and `npm run test:localization`. Browser tests use Microsoft Edge in isolated contexts. The Windows build runs 17 native boundary/association checks. See [validation notes](docs/VALIDATION.md) for coverage and limits.
+With the reader server running, install development dependencies in md-reader, then run `npm run check`, `npm run test:highlights` and `npm run test:localization`. Browser tests use Microsoft Edge in isolated contexts. The Windows build runs 17 native boundary/association checks; `yue-windows/tests/SigningTests.ps1` adds 16 signing/release checks against an unsigned development build. See [validation notes](docs/VALIDATION.md) for coverage and limits.
 
 ## Contribute
 

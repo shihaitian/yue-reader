@@ -1,0 +1,15 @@
+name: Translation feedback / 翻译建议
+description: Improve wording in one of the seven languages.
+body:
+  - type: input
+    id: language
+    attributes:
+      label: Language / 语言
+    validations:
+      required: true
+  - type: textarea
+    id: wording
+    attributes:
+      label: Current wording and suggested replacement / 原文与建议
+    validations:
+      required: true

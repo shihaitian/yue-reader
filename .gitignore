@@ -1,0 +1,10 @@
+**/node_modules/
+**/build/
+**/vendor/webview2/
+**/vendor/webview2.zip
+**/site/
+**/out/
+**/release-assets/
+**/.openai/
+*.log
+.DS_Store

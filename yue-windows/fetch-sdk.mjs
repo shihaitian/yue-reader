@@ -1,0 +1,10 @@
+import { writeFile, mkdir } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+const version = '1.0.4258.31';
+const url = `https://api.nuget.org/v3-flatcontainer/microsoft.web.webview2/${version}/microsoft.web.webview2.${version}.nupkg`;
+const response = await fetch(url);
+if (!response.ok) throw new Error(`NuGet download failed: ${response.status}`);
+const bytes = new Uint8Array(await response.arrayBuffer());
+await mkdir(new URL('./vendor/',import.meta.url), { recursive: true });
+await writeFile(new URL('./vendor/webview2.zip',import.meta.url),bytes);
+console.log(JSON.stringify({version,bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')}));

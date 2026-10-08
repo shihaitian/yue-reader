@@ -1,0 +1,22 @@
+name: Bug report / 问题反馈
+description: Report a reproducible problem in Yue.
+body:
+  - type: input
+    id: version
+    attributes:
+      label: Version, OS and language / 版本、系统、语言
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps and expected behavior / 重现步骤与预期
+      description: Use a synthetic example. Do not upload private documents.
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: What happened / 实际情况
+    validations:
+      required: true

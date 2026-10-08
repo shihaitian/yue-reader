@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="paper">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="阅，一个简洁、轻量的 Markdown 阅读器。打开文档，回到文字本身。">
+  <meta name="theme-color" content="#faf9f6">
+  <title>阅 · Markdown 阅读器</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='11' fill='%23747166'/%3E%3Cpath d='M10 12l10 4 10-4v17l-10-4-10 4zM20 16v9' fill='none' stroke='%23fff' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+  <script src="vendor/marked.umd.js" defer></script>
+  <script src="vendor/purify.min.js" defer></script>
+  <script src="vendor/highlight.min.js" defer></script>
+  <script src="locales.js" defer></script>
+  <script src="i18n.js" defer></script>
+  <script src="samples.js" defer></script>
+  <script src="highlights.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#article">跳到正文</a>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar" aria-label="文档库">
+      <a class="brand" href="#" id="brand" aria-label="阅，回到欢迎文档"><span class="brand-symbol" data-icon="book-open"></span><span class="brand-name">阅<span class="brand-separator">/</span><span class="brand-caption">悦读每一页</span></span></a>
+      <button class="open-button" id="open-file"><span data-icon="plus"></span>打开文件<kbd>Ctrl O</kbd></button>
+      <div class="library-heading"><span>我的文档 <span class="count" id="doc-count">3</span></span><button class="icon-button small" id="library-search-toggle" aria-label="筛选文档" title="筛选文档" data-icon="search"></button></div>
+      <div id="library-filter-wrap" class="library-filter" hidden><input id="library-filter" type="search" placeholder="搜索文件名…" aria-label="搜索文件名"></div>
+      <nav id="document-list" class="document-list" aria-label="已打开的文档"></nav>
+      <div class="sidebar-bottom">
+        <button class="drop-card" id="drop-card"><span class="drop-icon" data-icon="upload"></span><span>把文档拖到这里</span><small>支持 .md / .markdown / .txt</small></button>
+        <div class="local-note"><span class="status-dot"></span><span id="storage-status">文档仅保存在本机</span><span data-icon="shield"></span></div>
+        <div class="sidebar-footer"><span>少一点干扰，多一点专注。</span><button class="icon-button small" id="help-button" aria-label="使用帮助与快捷键" title="使用帮助与快捷键" data-icon="help"></button></div>
+      </div>
+    </aside>
+    <button class="sidebar-scrim" id="sidebar-scrim" tabindex="-1" aria-label="关闭文档库" hidden></button>
+    <div class="workspace">
+      <header class="toolbar">
+        <div class="toolbar-location"><button class="icon-button" id="sidebar-toggle" aria-label="切换文档库" title="切换文档库" data-icon="panel"></button><span class="breadcrumb">我的文档<span class="breadcrumb-slash">/</span></span><span class="current-filename" id="current-filename">欢迎使用.md</span><span class="file-extension">MD</span></div>
+        <div class="toolbar-actions">
+          <button class="search-button" id="search-toggle" aria-label="查找文档内容" title="查找文档内容 (Ctrl K)"><span data-icon="search"></span><span class="search-button-label">查找</span><kbd>Ctrl K</kbd></button>
+          <span class="toolbar-divider"></span>
+          <button class="icon-button" id="highlights-toggle" aria-label="查看本篇高亮" aria-expanded="false" aria-controls="highlights-panel" title="本篇高亮" data-icon="highlighter"></button>
+          <button class="icon-button type-button" id="settings-toggle" aria-label="阅读设置" aria-expanded="false" title="阅读设置">Aa</button>
+          <button class="theme-button" id="theme-toggle" aria-label="主题，当前为暖纸" aria-expanded="false" aria-controls="theme-panel" title="主题"><span class="theme-indicator" aria-hidden="true"></span>主题<span data-icon="down"></span></button>
+          <button class="icon-button" id="focus-toggle" aria-label="进入专注模式" title="专注模式 (F)" data-icon="focus"></button>
+          <button class="icon-button" id="more-toggle" aria-label="更多操作" aria-expanded="false" title="更多操作" data-icon="more"></button>
+        </div>
+        <section class="settings-popover popover" id="settings-panel" aria-label="阅读设置" hidden>
+          <div class="popover-heading">让阅读更合心意<button class="icon-button small" data-close-popovers aria-label="关闭阅读设置" data-icon="x"></button></div>
+          <div class="setting-row"><span>文字大小</span><div class="stepper"><button id="font-minus" aria-label="减小字号">−</button><output id="font-value">16</output><button id="font-plus" aria-label="增大字号">+</button></div></div>
+          <div class="setting-row"><span>正文字体</span><div class="segmented" id="font-options"><button data-font="sans" aria-pressed="true">黑体</button><button data-font="serif" aria-pressed="false">宋体</button></div></div>
+          <div class="setting-row"><span>阅读宽度</span><div class="segmented" id="width-options"><button data-width="comfortable" aria-pressed="true">舒适</button><button data-width="wide" aria-pressed="false">宽屏</button></div></div>
+          <div class="setting-row language-row"><label for="language-select">语言</label><select id="language-select" data-language-select aria-label="语言"></select></div>
+          <button class="text-button reset-settings" id="reset-settings">恢复默认设置</button>
+        </section>
+        <section class="theme-popover popover" id="theme-panel" aria-label="主题" hidden>
+          <div class="popover-heading">主题<button class="icon-button small" data-close-popovers aria-label="关闭主题" data-icon="x"></button></div>
+          <div class="theme-options" role="group" aria-label="选择阅读主题">
+            <button data-theme-choice="white" aria-pressed="false"><span class="theme-swatch white" aria-hidden="true"><i></i></span><span>浅白</span></button>
+            <button data-theme-choice="paper" aria-pressed="true"><span class="theme-swatch paper" aria-hidden="true"><i></i></span><span>暖纸</span></button>
+            <button data-theme-choice="green" aria-pressed="false"><span class="theme-swatch green" aria-hidden="true"><i></i></span><span>浅绿</span></button>
+            <button data-theme-choice="dark" aria-pressed="false"><span class="theme-swatch dark" aria-hidden="true"><i></i></span><span>夜间</span></button>
+          </div>
+        </section>
+        <div class="more-popover popover" id="more-panel" aria-label="更多操作" hidden>
+          <button id="website-open"><span data-icon="book-open"></span><span>官网与下载</span></button>
+          <button id="paste-open"><span data-icon="clipboard"></span>粘贴 Markdown</button>
+          <button id="folder-open"><span data-icon="folder"></span>打开文件夹</button>
+          <button id="outline-open"><span data-icon="list"></span>文档目录</button>
+          <hr><button id="download-file"><span data-icon="download"></span>下载原文</button>
+          <button id="print-file"><span data-icon="printer"></span>打印 / 导出 PDF</button>
+        </div>
+      </header>
+      <section class="find-bar" id="find-bar" aria-label="文内查找" hidden><span data-icon="search"></span><input type="search" id="find-input" placeholder="在当前文档中查找…" aria-label="查找关键词"><output id="find-count" aria-live="polite">输入关键词</output><button class="icon-button small" id="find-prev" aria-label="上一个匹配" data-icon="up"></button><button class="icon-button small" id="find-next" aria-label="下一个匹配" data-icon="down"></button><button class="icon-button small" id="find-close" aria-label="关闭查找" data-icon="x"></button></section>
+      <div class="reading-layout">
+        <main class="reading-scroll" id="reading-scroll" tabindex="-1">
+          <div class="reading-sheet">
+            <div class="document-eyebrow"><span class="document-type" id="document-type"><span data-icon="leaf"></span>一页开始，一刻专注</span><span class="document-meta" id="document-meta"></span></div>
+            <article class="prose" id="article" tabindex="-1" aria-label="文档正文"></article>
+            <div class="article-end"><span></span><span data-icon="leaf"></span><span></span><p>读到这里，刚刚好。</p></div>
+          </div>
+        </main>
+        <aside class="outline" aria-label="文档目录"><div class="outline-label"><span data-icon="list"></span>本页目录</div><nav id="outline-list"></nav><div class="outline-bottom"><div class="reading-progress-label"><span>阅读进度</span><span id="progress-value">0%</span></div><div class="progress-track"><div id="progress-bar"></div></div><button class="text-button" id="back-to-top"><span data-icon="arrow-up"></span>回到顶部</button></div></aside>
+        <aside class="highlights-panel" id="highlights-panel" aria-label="本篇高亮" hidden>
+          <div class="highlights-heading"><h2>本篇高亮 <span id="highlight-count">0</span></h2><button class="icon-button small" id="highlights-close" aria-label="关闭高亮面板" data-icon="x"></button></div>
+          <p class="highlights-hint">选中文字或段落，留下值得重读的片刻。</p>
+          <div id="highlights-list" class="highlights-list"></div>
+          <p class="highlights-storage" id="highlights-storage">自动保存在本地 · 原文件不变</p>
+        </aside>
+      </div>
+      <footer class="statusbar"><span><span class="status-dot"></span><span id="status-description">准备就绪</span></span><span class="statusbar-tip">静下心来，好好读一页</span><span><span id="word-count">0 字</span><span class="statusbar-divider">·</span><button id="status-focus">专注模式 <kbd>F</kbd></button></span></footer>
+    </div>
+  </div>
+  <input id="file-input" type="file" accept=".md,.markdown,.mdown,.mkd,.txt,image/*" multiple hidden>
+  <input id="folder-input" type="file" webkitdirectory multiple hidden>
+  <div class="drop-overlay" id="drop-overlay" hidden><div><span data-icon="upload"></span><h2>放下文档，开始阅读</h2><p>Markdown、TXT，以及文档中的图片</p></div></div>
+  <dialog id="paste-dialog" class="paste-dialog"><form method="dialog"><div class="dialog-heading"><div><h2>给文字一个安静的地方</h2><p>粘贴 Markdown，即刻开始阅读。</p></div><button class="icon-button" aria-label="关闭粘贴窗口" data-icon="x"></button></div></form><label for="paste-name" class="sr-only">文档名称</label><input id="paste-name" class="paste-name" placeholder="文档名称（可选）" maxlength="160"><label for="paste-content" class="sr-only">Markdown 内容</label><textarea id="paste-content" placeholder="# 从这里开始
+
+把你的 Markdown 粘贴到这里…" spellcheck="false"></textarea><div class="dialog-footer"><span>仅保存在本地</span><button class="primary-button" id="paste-submit">开始阅读<span data-icon="arrow-right"></span></button></div></dialog>
+  <dialog id="help-dialog" class="help-dialog"><form method="dialog"><div class="dialog-heading"><div><h2>简单一点，就很好。</h2><p>「阅」的使用小贴士</p></div><button class="icon-button" aria-label="关闭帮助" data-icon="x"></button></div></form><p>打开或拖入 Markdown 文件，即可阅读。也可以在「更多操作」中粘贴文本，或打开文件夹以一并加载本地图片。</p><dl class="shortcut-list"><div><dt>打开文件</dt><dd><kbd>Ctrl / ⌘</kbd> <kbd>O</kbd></dd></div><div><dt>文内查找</dt><dd><kbd>Ctrl / ⌘</kbd> <kbd>K</kbd></dd></div><div><dt>高亮选中文字</dt><dd><kbd>Ctrl / ⌘</kbd> <kbd>Shift</kbd> <kbd>H</kbd></dd></div><div><dt>切换专注模式</dt><dd><kbd>F</kbd></dd></div><div><dt>退出专注 / 关闭面板</dt><dd><kbd>Esc</kbd></dd></div></dl><div class="help-note"><span data-icon="shield"></span><p>文档仅在本地处理，不上传服务器。高亮会自动保存在本地，可在工具栏的「本篇高亮」中查看和取消。清除应用或浏览器数据会移除文档及高亮记录，重要文件请保留原件。单个文档最大 5 MB。</p></div><p class="help-footnote">使用 Marked、DOMPurify 与 highlight.js 构建。<a href="vendor/marked-LICENSE.txt" target="_blank" rel="noopener">开源许可</a></p></dialog>
+  <dialog id="outline-dialog" class="outline-dialog"><form method="dialog"><div class="dialog-heading"><h2>本页目录</h2><button class="icon-button" aria-label="关闭目录" data-icon="x"></button></div></form><nav id="mobile-outline" aria-label="章节导航"></nav></dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+  <div id="selection-toolbar" class="selection-toolbar" role="toolbar" aria-label="文字高亮" hidden><button id="highlight-selection"><span data-icon="highlighter"></span>高亮<kbd>Ctrl Shift H</kbd></button></div>
+  <noscript><div class="noscript">请启用 JavaScript 以打开 Markdown 文档。</div></noscript>
+</body>
+</html>

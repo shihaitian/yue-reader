@@ -6,5 +6,8 @@
 **/out/
 **/release-assets/
 **/.openai/
+**/app/*.exe
+**/app/*.dll
+**/app/installed-files.txt
 *.log
 .DS_Store

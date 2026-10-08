@@ -1,4 +1,10 @@
-# 1.2.0 validation
+# 1.2.1 validation
+
+- Verified actual rendered fonts through browser font inspection: Georgia for English and Noto Serif SC for Chinese on the test machine.
+- Inspected English and Chinese serif screenshots. Headings, paragraphs, quotes, lists and tables follow the selected face; inline and block code remain monospace. Font preference persistence, switching back to sans, and narrow screens passed.
+- Seven-language localization checks and the Windows build boundary checks are rerun for this release.
+
+## 1.2.0 baseline validation
 
 - 41 highlight regression checks: database migration, persistence, formatted and multi-paragraph selections, relocation, orphan excerpts, undo, search, themes, narrow screens and storage failures.
 - 48 localization checks: seven complete 267-string catalogs, placeholder parity, system default, language persistence, translated help, 320px layouts, unchanged user text/highlights and four themes.

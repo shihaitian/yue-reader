@@ -85,7 +85,8 @@
     document.documentElement.dataset.theme = prefs.theme;
     document.documentElement.style.setProperty('--article-size', `${prefs.size}px`);
     document.documentElement.style.setProperty('--article-width', prefs.width === 'wide' ? '1050px' : '760px');
-    document.documentElement.style.setProperty('--article-font', prefs.font === 'serif' ? '"Songti SC","Noto Serif CJK SC",SimSun,serif' : 'var(--body-font)');
+    document.documentElement.dataset.readingFont = prefs.font === 'serif' ? 'serif' : 'sans';
+    document.documentElement.style.setProperty('--article-font', prefs.font === 'serif' ? 'var(--serif-font)' : 'var(--body-font)');
     $('font-value').value = prefs.size;
     $('font-minus').disabled = prefs.size <= 13;
     $('font-plus').disabled = prefs.size >= 22;

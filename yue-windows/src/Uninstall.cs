@@ -8,7 +8,7 @@ using System.Windows.Forms;
 using Microsoft.Win32;
 
 [assembly: AssemblyTitle("卸载阅")]
-[assembly: AssemblyVersion("1.2.0.0")]
+[assembly: AssemblyVersion("1.2.1.0")]
 namespace YueReader {
     static class UninstallProgram {
         [STAThread] static void Main(string[] args) {

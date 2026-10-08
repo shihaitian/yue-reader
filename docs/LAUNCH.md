@@ -1,4 +1,4 @@
-# Launch kit — Yue 1.2.0
+# Launch kit — Yue 1.2.1
 
 Prepared on 2026-10-08. This is a public preview, not a claim of production-wide compatibility.
 
@@ -13,7 +13,7 @@ Evidence-backed claims: four muted themes, seven interface languages, shared web
 - Website: https://yue-markdown-shiha.txqy0831.chatgpt.site/
 - Web reader: https://yue-markdown-shiha.txqy0831.chatgpt.site/app/
 - Source: https://github.com/shihaitian/yue-reader
-- Release: https://github.com/shihaitian/yue-reader/releases/tag/v1.2.0
+- Release: https://github.com/shihaitian/yue-reader/releases/tag/v1.2.1
 - Feedback: https://github.com/shihaitian/yue-reader/issues/new/choose
 
 ## Chinese launch draft

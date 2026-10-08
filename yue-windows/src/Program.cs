@@ -20,8 +20,8 @@ using Microsoft.Web.WebView2.WinForms;
 [assembly: System.Reflection.AssemblyDescription("轻量 Windows Markdown 阅读器")]
 [assembly: System.Reflection.AssemblyProduct("阅")]
 [assembly: System.Reflection.AssemblyCompany("Yue Reader")]
-[assembly: System.Reflection.AssemblyVersion("1.2.0.0")]
-[assembly: System.Reflection.AssemblyFileVersion("1.2.0.0")]
+[assembly: System.Reflection.AssemblyVersion("1.2.1.0")]
+[assembly: System.Reflection.AssemblyFileVersion("1.2.1.0")]
 
 namespace YueReader {
     static class Program {

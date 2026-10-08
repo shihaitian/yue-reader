@@ -13,8 +13,8 @@ using Microsoft.Win32;
 [assembly: AssemblyTitle("阅 · Windows 安装程序")]
 [assembly: AssemblyProduct("阅")]
 [assembly: AssemblyCompany("Yue Reader")]
-[assembly: AssemblyVersion("1.2.0.0")]
-[assembly: AssemblyFileVersion("1.2.0.0")]
+[assembly: AssemblyVersion("1.2.1.0")]
+[assembly: AssemblyFileVersion("1.2.1.0")]
 
 namespace YueReader {
     public static class SetupPayload {
@@ -60,7 +60,7 @@ namespace YueReader {
             if (register) AppRegistration.Register(exe);
             using (RegistryKey key = Registry.CurrentUser.CreateSubKey(AppRegistration.UninstallKey)) {
                 key.SetValue("DisplayName", AppRegistration.DisplayName);
-                key.SetValue("DisplayVersion", "1.2.0");
+                key.SetValue("DisplayVersion", "1.2.1");
                 key.SetValue("Publisher", "Yue Reader");
                 key.SetValue("InstallLocation", root);
                 key.SetValue("DisplayIcon", exe + ",0");
@@ -114,7 +114,7 @@ namespace YueReader {
             header.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
             var logo = new PictureBox { Image = Icon.ToBitmap(), Size = new Size(48, 48), Margin = new Padding(0, 5, 20, 0), SizeMode = PictureBoxSizeMode.Zoom };
             title = new Label { Name = "Title", Text = L.T("让阅读，回归简单。"), AutoSize = true, Dock = DockStyle.Fill, Margin = new Padding(0, 0, 0, 6), Font = new Font(Font.FontFamily, 20, FontStyle.Bold) };
-            var subtitle = new Label { Text = "Yue 1.2.0  ·  Windows 10 / 11 · x64", AutoSize = true, Dock = DockStyle.Fill, Margin = Padding.Empty, ForeColor = Color.FromArgb(129, 120, 106) };
+            var subtitle = new Label { Text = "Yue 1.2.1  ·  Windows 10 / 11 · x64", AutoSize = true, Dock = DockStyle.Fill, Margin = Padding.Empty, ForeColor = Color.FromArgb(129, 120, 106) };
             header.Controls.Add(logo, 0, 0); header.SetRowSpan(logo, 2);
             header.Controls.Add(title, 1, 0); header.Controls.Add(subtitle, 1, 1);
             layout.Controls.Add(header, 0, 0);

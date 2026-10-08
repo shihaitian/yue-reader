@@ -2,9 +2,11 @@
 
 A quiet, lightweight Markdown reader for the web and Windows.
 
-[Website](https://yue-markdown-shiha.txqy0831.chatgpt.site/) · [Read online](https://yue-markdown-shiha.txqy0831.chatgpt.site/app/?lang=en) · [Windows download](https://github.com/shihaitian/yue-reader/releases/tag/v1.2.0) · [中文](docs/README.zh-CN.md) · [Español](docs/README.es.md) · [Français](docs/README.fr.md) · [Deutsch](docs/README.de.md) · [日本語](docs/README.ja.md) · [Português](docs/README.pt-BR.md)
+[Website](https://yue-markdown-shiha.txqy0831.chatgpt.site/) · [Read online](https://yue-markdown-shiha.txqy0831.chatgpt.site/app/?lang=en) · [Windows download](https://github.com/shihaitian/yue-reader/releases/tag/v1.2.1) · [中文](docs/README.zh-CN.md) · [Español](docs/README.es.md) · [Français](docs/README.fr.md) · [Deutsch](docs/README.de.md) · [日本語](docs/README.ja.md) · [Português](docs/README.pt-BR.md)
 
 ![Yue reader](md-reader/website/screenshots/reader-en.png)
+
+Serif mode uses Georgia for Latin text, with local CJK serif fallbacks. Document headings, paragraphs, quotes and tables follow the reading font; code stays monospace. No font downloads are required.
 
 ## Read, keep, return
 
@@ -17,7 +19,7 @@ A quiet, lightweight Markdown reader for the web and Windows.
 
 ## Downloads
 
-Version **1.2.0 is the first public preview**. Get the installer, portable ZIP or self-contained offline HTML from [Releases](https://github.com/shihaitian/yue-reader/releases/tag/v1.2.0). Check the included SHA256SUMS.txt.
+Version **1.2.1 is a public preview**. Get the installer, portable ZIP or self-contained offline HTML from [Releases](https://github.com/shihaitian/yue-reader/releases/tag/v1.2.1). Check the included SHA256SUMS.txt.
 
 Windows: 10 / 11, x64, .NET Framework 4.8 and Microsoft Edge WebView2 Runtime. The runtime is **not bundled**. The installer is currently unsigned. Web: a modern browser with JavaScript and IndexedDB. Documents are limited to 5 MB and images to 15 MB.
 
@@ -39,7 +41,7 @@ node md-reader/serve.mjs --site
 # http://127.0.0.1:4174
 ```
 
-Website downloads are supplied by release assets. To include them locally, run `gh release download v1.2.0 -R shihaitian/yue-reader -D md-reader/release-assets`, then run build-site.mjs again.
+Website downloads are supplied by release assets. To include them locally, run `gh release download v1.2.1 -R shihaitian/yue-reader -D md-reader/release-assets`, then run build-site.mjs again.
 
 Build Windows in PowerShell on Windows:
 

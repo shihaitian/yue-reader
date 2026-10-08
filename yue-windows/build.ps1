@@ -5,7 +5,7 @@ function Compile([string[]]$CompilerArguments) {
   & $compiler @CompilerArguments
   if ($LASTEXITCODE -ne 0) { throw 'C# compilation failed.' }
 }
-$version = '1.2.0'
+$version = '1.2.1'
 $appOutput = "build\app-$version"
 New-Item -ItemType Directory -Force -Path 'build',$appOutput | Out-Null
 # A shared web source supplies both distributions. Source archives include its snapshot.

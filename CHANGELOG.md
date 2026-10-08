@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.1 — 2026-10-08 — Typography refinement
+
+- Use classic Georgia for Latin text before CJK serif fallbacks; recognize Noto Serif SC and Source Han Serif SC when installed.
+- Apply the chosen reading font to document headings as well as body text, quotes, lists and tables. Code remains monospace and controls keep the UI font.
+- Refine serif heading weight, line height and spacing; rename the setting to Reading font in all seven languages.
+- Keep web, offline HTML and Windows editions in sync without adding downloadable fonts.
+
 ## 1.2.0 — 2026-10-08 — Public preview
 
 - Softer Paper and Sage, neutral White and Night themes.

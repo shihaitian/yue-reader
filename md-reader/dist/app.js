@@ -50,6 +50,9 @@
   let docs = [...samples];
   let active = samples[0];
   let database = null;
+  let storageLoaded = false, resolveStorage;
+  const storageReady = new Promise((resolve) => { resolveStorage = resolve; });
+  const pendingDocSaves = new Map(), removedDocuments = new Set();
   let assets = new Map();
   let headings = [];
   let matches = [];
@@ -123,7 +126,7 @@
   function dbOperation(store, operation, value) {
     if (!database) return Promise.resolve(operation === 'getAll' ? [] : undefined);
     return new Promise((resolve, reject) => {
-      const tx = database.transaction(store, operation === 'getAll' ? 'readonly' : 'readwrite');
+      const tx = database.transaction(store, ['get','getAll'].includes(operation) ? 'readonly' : 'readwrite');
       const request = tx.objectStore(store)[operation](value);
       tx.oncomplete = () => resolve(request.result);
       tx.onerror = () => reject(tx.error);
@@ -131,8 +134,27 @@
     });
   }
   async function saveDoc(doc) {
+    if (!storageLoaded) { pendingDocSaves.set(doc.id, doc); return; }
     try { await dbOperation('docs', 'put', doc); }
     catch { storageUnavailable(); toast(t('浏览器存储空间不足；文档仍可阅读，请保留原文件。')); }
+  }
+  async function saveAsset(path, blob) {
+    await storageReady;
+    try { await dbOperation('assets','put',{ path, blob }); } catch { storageUnavailable(); }
+  }
+  async function restoreImage(img, placeholder, keys) {
+    await storageReady;
+    for (const key of keys) {
+      if (!placeholder.isConnected) return;
+      let asset = assets.get(key);
+      if (!asset) {
+        try {
+          const saved = await dbOperation('assets','get',key);
+          if (saved?.blob) { asset = { blob:saved.blob, url:URL.createObjectURL(saved.blob) }; assets.set(key,asset); }
+        } catch { return; }
+      }
+      if (asset && placeholder.isConnected) { img.src = asset.url; placeholder.replaceWith(img); return; }
+    }
   }
   function renderLibrary() {
     const filter = $('library-filter').value.trim().toLocaleLowerCase();
@@ -248,6 +270,8 @@
         const hint = document.createElement('small');
         hint.textContent = t('请将本地图片一同拖入，或打开所在文件夹');
         placeholder.append(hint);
+        // Read only referenced images; unrelated cached blobs never delay startup.
+        restoreImage(img, placeholder, [nativeKey, relativePath(src), normalizePath(src)]);
       }
       img.replaceWith(placeholder);
     });
@@ -498,11 +522,13 @@
     if (!$('find-bar').hidden && $('find-input').value) runFind(false);
   }
   function renderHighlights() {
+    const hadMarks = highlightMarks.size > 0;
     for (const marks of highlightMarks.values()) for (const mark of marks) if (mark.isConnected) mark.replaceWith(...mark.childNodes);
-    $('article').normalize();
+    if (hadMarks) $('article').normalize();
     highlightMarks = new Map(); resolvedHighlights = new Map();
-    const index = textIndex();
     const items = annotations.get(active.id) || [];
+    if (!items.length) { renderHighlightList(items); return; }
+    const index = textIndex();
     const ranges = [];
     for (const item of items) {
       const range = YueHighlights.locate(item, index.text);
@@ -649,7 +675,7 @@
       if (previous) URL.revokeObjectURL(previous.url);
       assets.set(path, { blob:file, url:URL.createObjectURL(file) });
       images++;
-      try { await dbOperation('assets','put',{ path, blob:file }); } catch { storageUnavailable(); }
+      saveAsset(path,file);
     }
     for (const file of list) {
       if (!isMarkdown(file.name)) continue;
@@ -660,7 +686,7 @@
         const existing = docs.find((doc) => !doc.sample && doc.path === path);
         const doc = { id:existing?.id || uid(), name:file.name, path, content, position:existing?.position || 0, updated:Date.now() };
         if (existing) docs.splice(docs.indexOf(existing),1,doc); else docs.push(doc);
-        await saveDoc(doc);
+        saveDoc(doc);
         imported.push(doc);
       } catch { skipped++; }
     }
@@ -671,11 +697,12 @@
     $('file-input').value = ''; $('folder-input').value = '';
   }
   async function removeDocument(doc) {
+    removedDocuments.add(doc.id); pendingDocSaves.delete(doc.id);
     const index = docs.indexOf(doc);
     docs.splice(index,1);
     if (active.id === doc.id) openDocument(docs[Math.min(index, docs.length-1)].id); else renderLibrary();
-    try { await dbOperation('docs','delete',doc.id); } catch { storageUnavailable(); }
-    toast(t('已从文档库移除，原文件不受影响。'), { label:t('撤销'), run:() => { docs.splice(index,0,doc); saveDoc(doc); openDocument(doc.id); } });
+    storageReady.then(() => removedDocuments.has(doc.id) && dbOperation('docs','delete',doc.id)).catch(storageUnavailable);
+    toast(t('已从文档库移除，原文件不受影响。'), { label:t('撤销'), run:() => { removedDocuments.delete(doc.id); docs.splice(index,0,doc); saveDoc(doc); openDocument(doc.id); } });
   }
   function closePopovers(restoreFocus = false) {
     let trigger;
@@ -803,6 +830,16 @@
   document.addEventListener('dragleave',() => { if (--dragDepth <= 0) { dragDepth = 0; $('drop-overlay').hidden = true; } });
   document.addEventListener('drop',(e) => { e.preventDefault(); dragDepth = 0; $('drop-overlay').hidden = true; if (e.dataTransfer?.files.length) importFiles(e.dataTransfer.files); });
   window.addEventListener('pagehide',() => { rememberPosition(); saveDoc(active); });
+  function importNativeDocuments(items) {
+    for (const item of items) {
+      const existing = docs.find((d) => d.id === item.id);
+      const doc = { ...item, native:true, position:existing?.position || 0, updated:Date.now() };
+      if (existing) docs.splice(docs.indexOf(existing),1,doc); else docs.push(doc);
+      saveDoc(doc);
+    }
+    $('library-filter').value = '';
+    if (items.length) openDocument(items[0].id, { remember:renderVersion > 0 });
+  }
   if (nativeHost) {
     const defaultsButton = document.createElement('button');
     defaultsButton.innerHTML = icon('file') + '<span id="native-defaults-label">' + escapeHTML(t('设为默认阅读器')) + '</span>';
@@ -810,34 +847,34 @@
     $('more-panel').append(defaultsButton);
     let nativeUpdates = Promise.resolve(), nativeViewPrepared = false;
     nativeHost.addEventListener('message', ({ data }) => {
-      // A prepare message must wait for the preceding file import and its storage write.
+      // Preserve message order without putting disk writes on the display path.
       nativeUpdates = nativeUpdates.then(async () => {
       if (data.type === 'notice') toast(data.message);
       if (data.type === 'image') {
         const request = imageRequests.get(data.requestId);
         if (!request) return;
         imageRequests.delete(data.requestId);
-        if (data.error) { request.hint.textContent = data.error; return; }
+        if (data.error) {
+          request.hint.textContent = data.error;
+          // A restored library item may have no current native file handle yet.
+          // Keep its previously saved image available without reopening the file.
+          restoreImage(request.img,request.placeholder,[request.key]);
+          return;
+        }
         const bytes = Uint8Array.from(atob(data.bytes),(c) => c.charCodeAt(0));
         const blob = new Blob([bytes],{ type:data.mime });
         const url = URL.createObjectURL(blob);
         const old = assets.get(request.key); if (old) URL.revokeObjectURL(old.url);
         assets.set(request.key,{ blob, url });
         request.img.src = url; request.placeholder.replaceWith(request.img);
-        try { await dbOperation('assets','put',{ path:request.key, blob }); } catch { /* Image remains available this session. */ }
+        saveAsset(request.key,blob);
       }
       if (data.type === 'open-documents') {
-        for (const item of data.documents) {
-          const existing = docs.find((d) => d.id === item.id);
-          const doc = { ...item, native:true, position:existing?.position || 0, updated:Date.now() };
-          if (existing) docs.splice(docs.indexOf(existing),1,doc); else docs.push(doc);
-          await saveDoc(doc);
-        }
-        $('library-filter').value = '';
-        if (data.documents.length) openDocument(data.documents[0].id);
+        importNativeDocuments(data.documents);
       }
       if (data.type === 'prepare-view') {
-        await document.fonts.ready;
+        // All fonts are local. Layout is enough to prepare a correctly themed view;
+        // waiting for the whole font set can unnecessarily hold the native cover.
         $('reading-scroll').scrollTop = positions.get(active.id) ?? active.position ?? 0;
         updateProgress();
         nativeViewPrepared = true;
@@ -862,31 +899,47 @@
     if(nativeHost) { nativeHost.postMessage({ type:'language-changed', language:locale() }); document.getElementById('native-defaults-label').textContent=t('设为默认阅读器'); }
   });
   applyPreferences();
-  renderLibrary();
   const requestedId = prefs.active;
+  const initialDocuments = nativeHost && Array.isArray(window.YueInitialDocuments) ? window.YueInitialDocuments : [];
+  delete window.YueInitialDocuments;
   // Draw the first document immediately; restored local content follows asynchronously.
-  openDocument('welcome', { restore:false, remember:false });
+  if (initialDocuments.length) importNativeDocuments(initialDocuments);
+  else openDocument('welcome', { restore:false, remember:false });
+  // Windows can send the requested file now, even while a large library is restoring.
+  nativeHost?.postMessage({ type:'ready', language:locale() });
   (async () => {
     database = await openDatabase();
     if (!database) storageUnavailable();
     else database.onversionchange = () => { database.close(); database = null; storageUnavailable(); renderHighlightList(annotations.get(active.id) || []); };
     try {
-      const [saved, savedAssets, savedHighlights] = await Promise.all([dbOperation('docs','getAll'), dbOperation('assets','getAll'), dbOperation('highlights','getAll')]);
+      const [saved, savedHighlights] = await Promise.all([dbOperation('docs','getAll'), dbOperation('highlights','getAll')]);
       for (const record of savedHighlights) if (record && typeof record.docId === 'string' && Array.isArray(record.items)) annotations.set(record.docId, record.items.filter((item) => item && typeof item.id === 'string' && typeof item.quote === 'string'));
       annotationsReady = true;
       const initialVersion = renderVersion;
       for (const doc of saved) {
-        if (!doc || typeof doc.content !== 'string' || typeof doc.name !== 'string') continue;
+        if (!doc || typeof doc.content !== 'string' || typeof doc.name !== 'string' || removedDocuments.has(doc.id)) continue;
         const index = docs.findIndex((d) => d.id === doc.id);
-        if (index >= 0) { if (docs[index].sample) docs[index].position = doc.position; }
+        if (index >= 0) {
+          if (docs[index].sample) docs[index].position = doc.position;
+          // Preserve fresh disk content, but recover its saved position if the user
+          // has not scrolled or navigated away while storage was still loading.
+          else if (pendingDocSaves.has(doc.id) && !positions.has(doc.id)) {
+            docs[index].position = doc.position || 0;
+            if (active.id === doc.id && $('reading-scroll').scrollTop === 0) $('reading-scroll').scrollTop = docs[index].position;
+          }
+        }
         else docs.push(doc);
       }
-      for (const asset of savedAssets) { if (!assets.has(asset.path)) assets.set(asset.path,{ blob:asset.blob, url:URL.createObjectURL(asset.blob) }); }
       // Only restore if the reader has not navigated while storage was opening.
-      if (initialVersion === 1 && renderVersion === 1) openDocument(docs.some((d) => d.id === requestedId) ? requestedId : 'welcome', { remember:false });
+      if (!initialDocuments.length && initialVersion === 1 && renderVersion === 1) openDocument(docs.some((d) => d.id === requestedId) ? requestedId : 'welcome', { remember:false });
       else { renderLibrary(); refreshHighlights(); }
       for (const doc of docs) if (!doc.sample && !saved.some((savedDoc) => savedDoc.id === doc.id)) saveDoc(doc);
     } catch { storageUnavailable(); }
-    finally { annotationsReady = true; renderHighlightList(annotations.get(active.id) || []); nativeHost?.postMessage({ type:'ready', language:locale() }); }
+    finally {
+      annotationsReady = true; storageLoaded = true; resolveStorage();
+      renderHighlightList(annotations.get(active.id) || []);
+      for (const doc of pendingDocSaves.values()) if (!removedDocuments.has(doc.id)) saveDoc(doc);
+      pendingDocSaves.clear();
+    }
   })();
 })();

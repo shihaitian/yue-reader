@@ -2,11 +2,13 @@
 
 A quiet, lightweight Markdown reader for the web and Windows.
 
-[Website](https://yue-markdown-shiha.txqy0831.chatgpt.site/) · [Read online](https://yue-markdown-shiha.txqy0831.chatgpt.site/app/?lang=en) · [Windows download](https://github.com/shihaitian/yue-reader/releases/tag/v1.2.1) · [中文](docs/README.zh-CN.md) · [Español](docs/README.es.md) · [Français](docs/README.fr.md) · [Deutsch](docs/README.de.md) · [日本語](docs/README.ja.md) · [Português](docs/README.pt-BR.md)
+[Website](https://yue-markdown-shiha.txqy0831.chatgpt.site/) · [Read online](https://yue-markdown-shiha.txqy0831.chatgpt.site/app/?lang=en) · [Windows download](https://github.com/shihaitian/yue-reader/releases/tag/v1.2.2) · [中文](docs/README.zh-CN.md) · [Español](docs/README.es.md) · [Français](docs/README.fr.md) · [Deutsch](docs/README.de.md) · [日本語](docs/README.ja.md) · [Português](docs/README.pt-BR.md)
 
 ![Yue reader](md-reader/website/screenshots/reader-en.png)
 
 Serif mode uses Georgia for Latin text, with local CJK serif fallbacks. Document headings, paragraphs, quotes and tables follow the reading font; code stays monospace. No font downloads are required.
+
+Version 1.2.2 removes a repeatable two-second Windows startup delay and restores saved data in the background. Small-document startup measured about 0.8 seconds on the development machine, with existing documents and highlights retained. See [measurements and limits](docs/VALIDATION.md).
 
 ## Read, keep, return
 
@@ -19,7 +21,7 @@ Serif mode uses Georgia for Latin text, with local CJK serif fallbacks. Document
 
 ## Downloads
 
-Version **1.2.1 is a public preview**. Get the installer, portable ZIP or self-contained offline HTML from [Releases](https://github.com/shihaitian/yue-reader/releases/tag/v1.2.1). Check the included SHA256SUMS.txt.
+Version **1.2.2 is a public preview**. Get the installer, portable ZIP or self-contained offline HTML from [Releases](https://github.com/shihaitian/yue-reader/releases/tag/v1.2.2). Check the included SHA256SUMS.txt.
 
 Windows: 10 / 11, x64, .NET Framework 4.8 and Microsoft Edge WebView2 Runtime. The runtime is **not bundled**. The installer is currently unsigned. Web: a modern browser with JavaScript and IndexedDB. Documents are limited to 5 MB and images to 15 MB.
 
@@ -41,7 +43,7 @@ node md-reader/serve.mjs --site
 # http://127.0.0.1:4174
 ```
 
-Website downloads are supplied by release assets. To include them locally, run `gh release download v1.2.1 -R shihaitian/yue-reader -D md-reader/release-assets`, then run build-site.mjs again.
+Website downloads are supplied by release assets. To include them locally, run `gh release download v1.2.2 -R shihaitian/yue-reader -D md-reader/release-assets`, then run build-site.mjs again.
 
 Build Windows in PowerShell on Windows:
 
@@ -54,7 +56,7 @@ Expand-Archive -LiteralPath vendor/webview2.zip -DestinationPath vendor/webview2
 
 Outputs appear in yue-windows/build. The Windows build automatically copies md-reader/dist into app/ui; keep both directories next to each other. The source archive includes the UI snapshot for standalone Windows builds. No registry changes are made by build tests.
 
-`build.ps1` creates an unsigned development build. Public signed EXE/portable releases use `yue-windows/release.ps1`, which signs the reader and uninstaller before embedding them, then signs the installer and verifies every payload before export. It requires an approved signing identity; **the published 1.2.1 preview is still unsigned**. See [Windows signing setup](docs/WINDOWS-SIGNING.md).
+`build.ps1` creates an unsigned development build. Public signed EXE/portable releases use `yue-windows/release.ps1`, which signs the reader and uninstaller before embedding them, then signs the installer and verifies every payload before export. It requires an approved signing identity; **the published 1.2.2 preview is still unsigned**. See [Windows signing setup](docs/WINDOWS-SIGNING.md).
 
 ## Verify
 

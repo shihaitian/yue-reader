@@ -23,3 +23,20 @@ jobs:
           Expand-Archive -LiteralPath vendor/webview2.zip -DestinationPath vendor/webview2 -Force
           ./build.ps1
           ./tests/SigningTests.ps1
+      - name: Browser storage and startup regressions
+        shell: pwsh
+        run: |
+          npm --prefix md-reader install --ignore-scripts
+          if ($LASTEXITCODE -ne 0) { throw 'Test dependency installation failed.' }
+          $server = Start-Process node -ArgumentList 'md-reader/serve.mjs' -WindowStyle Hidden -PassThru
+          try {
+            $ready = $false
+            foreach ($attempt in 1..30) {
+              try { Invoke-WebRequest http://127.0.0.1:4173/ -UseBasicParsing | Out-Null; $ready = $true; break } catch { Start-Sleep -Milliseconds 200 }
+            }
+            if (-not $ready) { throw 'Preview server did not start.' }
+            foreach ($test in @('startup','highlights','localization')) {
+              node "md-reader/tests/$test.test.cjs"
+              if ($LASTEXITCODE -ne 0) { throw "$test checks failed." }
+            }
+          } finally { if (-not $server.HasExited) { Stop-Process -Id $server.Id } }

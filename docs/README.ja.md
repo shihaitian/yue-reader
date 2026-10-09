@@ -2,7 +2,7 @@
 
 ローカルハイライト、穏やかな4テーマ、7言語に対応する、軽量で無料の Markdown リーダー。Web と Windows で利用できます。
 
-[公式サイト](https://yue-markdown-shiha.txqy0831.chatgpt.site/?lang=ja) · [Web 版を開く](https://yue-markdown-shiha.txqy0831.chatgpt.site/app/?lang=ja) · [Windows 版をダウンロード](https://github.com/shihaitian/yue-reader/releases/tag/v1.2.1) · [Build / Development (English)](../README.md#run-and-build)
+[公式サイト](https://yue-markdown-shiha.txqy0831.chatgpt.site/?lang=ja) · [Web 版を開く](https://yue-markdown-shiha.txqy0831.chatgpt.site/app/?lang=ja) · [Windows 版をダウンロード](https://github.com/shihaitian/yue-reader/releases/tag/v1.2.2) · [Build / Development (English)](../README.md#run-and-build)
 
 ![Yue](../md-reader/website/screenshots/reader-ja.png)
 

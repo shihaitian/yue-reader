@@ -2,7 +2,7 @@
 
 Un lecteur Markdown léger et gratuit avec surlignages locaux, quatre thèmes discrets et sept langues. Pour le web et Windows.
 
-[Site web](https://yue-markdown-shiha.txqy0831.chatgpt.site/?lang=fr) · [Ouvrir le lecteur web](https://yue-markdown-shiha.txqy0831.chatgpt.site/app/?lang=fr) · [Télécharger pour Windows](https://github.com/shihaitian/yue-reader/releases/tag/v1.2.1) · [Build / Development (English)](../README.md#run-and-build)
+[Site web](https://yue-markdown-shiha.txqy0831.chatgpt.site/?lang=fr) · [Ouvrir le lecteur web](https://yue-markdown-shiha.txqy0831.chatgpt.site/app/?lang=fr) · [Télécharger pour Windows](https://github.com/shihaitian/yue-reader/releases/tag/v1.2.2) · [Build / Development (English)](../README.md#run-and-build)
 
 ![Yue](../md-reader/website/screenshots/reader-fr.png)
 

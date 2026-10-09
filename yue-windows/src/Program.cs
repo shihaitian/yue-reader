@@ -20,8 +20,8 @@ using Microsoft.Web.WebView2.WinForms;
 [assembly: System.Reflection.AssemblyDescription("轻量 Windows Markdown 阅读器")]
 [assembly: System.Reflection.AssemblyProduct("阅")]
 [assembly: System.Reflection.AssemblyCompany("Yue Reader")]
-[assembly: System.Reflection.AssemblyVersion("1.2.1.0")]
-[assembly: System.Reflection.AssemblyFileVersion("1.2.1.0")]
+[assembly: System.Reflection.AssemblyVersion("1.2.2.0")]
+[assembly: System.Reflection.AssemblyFileVersion("1.2.2.0")]
 
 namespace YueReader {
     static class Program {
@@ -69,13 +69,20 @@ namespace YueReader {
     class ReaderWindow : Form {
         readonly WebView2 web = new WebView2();
         readonly Queue<string[]> pending = new Queue<string[]>();
+        readonly Queue<object> pendingReplies = new Queue<object>();
         readonly Dictionary<string, string> documents = new Dictionary<string, string>();
+        sealed class OpenedDocument { public string id, name, path, content; }
+        sealed class DocumentBatch { public readonly List<OpenedDocument> files = new List<OpenedDocument>(); public readonly List<string> errors = new List<string>(); }
+        Task<DocumentBatch> initialRead;
+        List<string> initialErrors;
         bool pageReady, closing, navigationReady, viewReady, viewRevealed;
         NamedPipeServerStream pipeServer;
         const string Origin = "https://yue.local";
         readonly string uiPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ui");
         readonly Label loading = new Label();
         public ReaderWindow(string[] args) {
+            // Read the requested file while the browser engine starts, not afterwards.
+            initialRead = ReadFiles(args);
             SuspendLayout();
             AutoScaleDimensions = new SizeF(96F, 96F);
             AutoScaleMode = AutoScaleMode.Dpi;
@@ -91,7 +98,6 @@ namespace YueReader {
             Controls.Add(loading);
             web.Dock = DockStyle.Fill; web.DefaultBackgroundColor = BackColor; web.Visible = false;
             Controls.Add(web); loading.BringToFront();
-            pending.Enqueue(args);
             Shown += async (s, e) => { Listen(); await Initialize(); };
             FormClosed += (s, e) => { closing = true; if (pipeServer != null) pipeServer.Dispose(); web.Dispose(); };
             ResumeLayout(true);
@@ -114,7 +120,11 @@ namespace YueReader {
                 string version = CoreWebView2Environment.GetAvailableBrowserVersionString();
                 string customData = Environment.GetEnvironmentVariable("YUE_READER_DATA");
                 string data = String.IsNullOrEmpty(customData) ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "YueReader", "WebView2") : Path.GetFullPath(customData);
-                var environment = await CoreWebView2Environment.CreateAsync(null, data, new CoreWebView2EnvironmentOptions());
+                // .local otherwise incurs an mDNS lookup (~2 s per navigation).
+                // Keep the existing origin so IndexedDB/highlights remain intact;
+                // resolve only this app host locally, inside this WebView2 process.
+                var options = new CoreWebView2EnvironmentOptions { AdditionalBrowserArguments = "--host-resolver-rules=\"MAP yue.local 127.0.0.1\"" };
+                var environment = await CoreWebView2Environment.CreateAsync(null, data, options);
                 await web.EnsureCoreWebView2Async(environment);
                 var core = web.CoreWebView2;
                 core.SetVirtualHostNameToFolderMapping("yue.local", uiPath, CoreWebView2HostResourceAccessKind.DenyCors);
@@ -131,7 +141,11 @@ namespace YueReader {
                 core.NewWindowRequested += (s, e) => { e.Handled = true; if (e.IsUserInitiated) OpenExternal(e.Uri); };
                 core.DocumentTitleChanged += (s, e) => { Text = core.DocumentTitle; };
                 core.WebMessageReceived += OnMessage;
-                await core.AddScriptToExecuteOnDocumentCreatedAsync("try { if (!localStorage.getItem('yue-language')) localStorage.setItem('yue-language', " + Program.Json.Serialize(L.Language) + "); } catch {}");
+                var initial = await initialRead;
+                foreach (var file in initial.files) documents[file.id] = file.path;
+                initialErrors = initial.errors;
+                await core.AddScriptToExecuteOnDocumentCreatedAsync("if(location.origin === '" + Origin + "') { try { if (!localStorage.getItem('yue-language')) localStorage.setItem('yue-language', " + Program.Json.Serialize(L.Language) + "); } catch {} window.YueInitialDocuments = " + Program.Json.Serialize(initial.files) + "; }");
+                initialRead = null;
                 core.NavigationCompleted += (s, e) => { if (e.IsSuccess) { navigationReady = true; RevealWhenReady(); } else ShowFailure(L.T("界面加载失败：") + e.WebErrorStatus); };
                 core.ProcessFailed += (s, e) => { if (!closing && e.ProcessFailedKind != CoreWebView2ProcessFailedKind.BrowserProcessExited) ShowFailure(L.T("阅读窗口需要重新打开。请关闭阅后重试。")); };
                 core.Navigate(Origin + "/index.html");
@@ -153,6 +167,7 @@ namespace YueReader {
         void ShowFailure(string text) { if (closing) return; web.Visible = false; loading.Visible = true; loading.BringToFront(); loading.Text = text; }
         async void Listen() {
             while (!closing) {
+                bool retry = false;
                 try {
                     var security = new PipeSecurity();
                     security.SetAccessRuleProtection(true, false);
@@ -165,41 +180,58 @@ namespace YueReader {
                             while (length < buffer.Length) { int count = await reader.ReadAsync(buffer, length, buffer.Length - length); if (count == 0) break; length += count; }
                             if (length > 32768) continue;
                             string[] args = Program.Json.Deserialize<string[]>(new string(buffer, 0, length));
-                            if (args != null) { pending.Enqueue(args); Show(); if (WindowState == FormWindowState.Minimized) WindowState = FormWindowState.Normal; Activate(); await Drain(); }
+                            if (args != null) { pending.Enqueue(args); Show(); if (WindowState == FormWindowState.Minimized) WindowState = FormWindowState.Normal; if (!ShowWithoutActivation) Activate(); await Drain(); }
                         }
                     }
                 } catch (ObjectDisposedException) { break; }
-                catch (IOException) { }
-                catch (Exception) { }
+                catch (IOException) { retry = true; }
+                catch (Exception) { retry = true; }
                 finally { pipeServer = null; }
-                if (!closing) await Task.Delay(100);
+                if (retry && !closing) await Task.Delay(100);
             }
         }
         async Task Drain() {
             if (!pageReady) return;
             while (pending.Count > 0) await OpenFiles(pending.Dequeue());
         }
-        void Send(object value) { if (!closing && pageReady && web.CoreWebView2 != null) web.CoreWebView2.PostWebMessageAsJson(Program.Json.Serialize(value)); }
-        async Task OpenFiles(IEnumerable<string> paths) {
-            var result = new List<object>();
-            foreach (string raw in paths.Take(50)) {
+        void Send(object value) {
+            if (closing) return;
+            if (!pageReady) { pendingReplies.Enqueue(value); return; }
+            if (web.CoreWebView2 != null) web.CoreWebView2.PostWebMessageAsJson(Program.Json.Serialize(value));
+        }
+        static Task<DocumentBatch> ReadFiles(IEnumerable<string> paths) {
+            var inputs = paths.Take(50).ToArray();
+            return Task.Run(() => {
+            var result = new DocumentBatch();
+            foreach (string raw in inputs) {
                 if (String.IsNullOrWhiteSpace(raw)) continue;
                 try {
                     string file = Path.GetFullPath(raw);
-                    string content = await Task.Run(() => ReaderFiles.ReadDocument(file));
+                    string content = ReaderFiles.ReadDocument(file);
                     string id = ReaderFiles.DocumentId(file);
-                    documents[id] = file;
-                    result.Add(new { id, name = Path.GetFileName(file), path = file.Replace('\\', '/'), content });
-                } catch (Exception error) { Send(new { type = "notice", message = error.Message }); }
+                    result.files.Add(new OpenedDocument { id = id, name = Path.GetFileName(file), path = file.Replace('\\', '/'), content = content });
+                } catch (Exception error) { result.errors.Add(error.Message); }
             }
-            if (result.Count > 0) Send(new { type = "open-documents", documents = result });
+            return result;
+            });
+        }
+        async Task OpenFiles(IEnumerable<string> paths) {
+            var result = await ReadFiles(paths);
+            foreach (var file in result.files) documents[file.id] = file.path;
+            foreach (var error in result.errors) Send(new { type = "notice", message = error });
+            if (result.files.Count > 0) Send(new { type = "open-documents", documents = result.files });
         }
         async void OnMessage(object sender, CoreWebView2WebMessageReceivedEventArgs args) {
             if (!Trusted(args.Source)) return;
             try {
                 var data = Program.Json.Deserialize<Dictionary<string, object>>(args.WebMessageAsJson);
                 string type = Get(data, "type");
-                if (type == "ready") { L.SetLanguage(Get(data, "language"), true); Text = AppRegistration.DisplayName; pageReady = true; await Drain(); Send(new { type = "prepare-view" }); }
+                if (type == "ready") {
+                    L.SetLanguage(Get(data, "language"), true); Text = AppRegistration.DisplayName; pageReady = true;
+                    while (pendingReplies.Count > 0) Send(pendingReplies.Dequeue());
+                    if (initialErrors != null) { foreach (var error in initialErrors) Send(new { type = "notice", message = error }); initialErrors = null; }
+                    await Drain(); Send(new { type = "prepare-view" });
+                }
                 else if (type == "view-ready") { SetSurfaceTheme(Get(data, "theme")); viewReady = true; RevealWhenReady(); }
                 else if (type == "language-changed") { L.SetLanguage(Get(data, "language"), true); Text = AppRegistration.DisplayName; }
                 else if (type == "website") { OpenExternal("https://yue-markdown-shiha.txqy0831.chatgpt.site/?lang=" + L.Language); }

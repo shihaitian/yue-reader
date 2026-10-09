@@ -2,9 +2,9 @@
 
 ## Status
 
-The public **1.2.1 preview is unsigned**. The build now supports signing with a certificate-store identity, plus separate stages for a cloud signing service. No signing certificate or service has been provisioned for Yue, and no trusted Yue signature has been produced or verified yet. Keep download pages and release notes accurate until a signed release passes the full procedure below.
+The public **1.2.2 preview is unsigned**. The build now supports signing with a certificate-store identity, plus separate stages for a cloud signing service. No signing certificate or service has been provisioned for Yue, and no trusted Yue signature has been produced or verified yet. Keep download pages and release notes accurate until a signed release passes the full procedure below.
 
-官网下载 EXE 的方式保持不变。签名流程已准备好，但还需完成发布者认证并获得可用的签名证书／服务。当前 1.2.1 仍是未签名预览版。请勿把自签证书、删除下载标记或关闭 SmartScreen 当作面向用户的签名方案。
+官网下载 EXE 的方式保持不变。签名流程已准备好，但还需完成发布者认证并获得可用的签名证书／服务。当前 1.2.2 仍是未签名预览版。请勿把自签证书、删除下载标记或关闭 SmartScreen 当作面向用户的签名方案。
 
 ## Choose an identity first
 
@@ -60,7 +60,7 @@ Replace `<version>` with the version in build-info.json. Use a fresh candidate d
 
 ## Publish and verify
 
-Create a new version/tag for the signed release; do not silently replace the 1.2.1 preview or its checksums. Upload the exported bytes unchanged to GitHub Releases and the website download location. Download the resulting EXE through a normal browser, compare its SHA-256, inspect the certificate publisher in Windows Properties, and test install, update, opening `.md`, and uninstall on a clean Windows profile. Keep the Internet zone metadata during this test. Update the website's signing notice only after those checks pass.
+Create a new version/tag for the signed release; do not silently replace an existing preview or its checksums. Upload the exported bytes unchanged to GitHub Releases and the website download location. Download the resulting EXE through a normal browser, compare its SHA-256, inspect the certificate publisher in Windows Properties, and test install, update, opening `.md`, and uninstall on a clean Windows profile. Keep the Internet zone metadata during this test. Update the website's signing notice only after those checks pass.
 
 A trusted signature establishes publisher identity and integrity. SmartScreen also considers download reputation, so **a valid signature does not guarantee the first download of a new EXE will have no warning**. EV signing no longer provides an automatic SmartScreen bypass. See [Microsoft's reputation guidance](https://learn.microsoft.com/en-us/windows/apps/package-and-deploy/smartscreen-reputation) and [SignTool documentation](https://learn.microsoft.com/en-us/windows/win32/seccrypto/signtool).
 

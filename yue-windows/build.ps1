@@ -26,7 +26,7 @@ function Compile([string[]]$CompilerArguments) {
   & $compiler @CompilerArguments
   if ($LASTEXITCODE -ne 0) { throw 'C# compilation failed.' }
 }
-$version = '1.2.1'
+$version = '1.2.2'
 $appOutput = Join-Path $buildRoot "app-$version"
 $icon = Join-Path $buildRoot 'yue.ico'
 $payload = Join-Path $buildRoot 'payload.zip'

@@ -1,6 +1,6 @@
 {
   "name": "yue-markdown-reader",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "private": true,
   "description": "A quiet, lightweight, local-first Markdown reader",
   "type": "module",
@@ -9,6 +9,7 @@
     "check": "node --check dist/app.js && node --check dist/highlights.js && node --check dist/i18n.js && node --check dist/samples.js && node --check website/site.js",
     "test:highlights": "node tests/highlights.test.cjs",
     "test:localization": "node tests/localization.test.cjs",
+    "test:startup": "node tests/startup.test.cjs",
     "build:locales": "node build-locales.mjs",
     "build:site": "node build-site.mjs"
   },

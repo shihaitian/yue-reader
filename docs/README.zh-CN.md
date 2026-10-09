@@ -2,7 +2,7 @@
 
 轻量、免费的 Markdown 阅读器。支持本地高亮、四种柔和主题和七种语言，提供网页版与 Windows 版。
 
-[官网](https://yue-markdown-shiha.txqy0831.chatgpt.site/?lang=zh-CN) · [打开网页版](https://yue-markdown-shiha.txqy0831.chatgpt.site/app/?lang=zh-CN) · [下载 Windows 版](https://github.com/shihaitian/yue-reader/releases/tag/v1.2.1) · [Build / Development (English)](../README.md#run-and-build)
+[官网](https://yue-markdown-shiha.txqy0831.chatgpt.site/?lang=zh-CN) · [打开网页版](https://yue-markdown-shiha.txqy0831.chatgpt.site/app/?lang=zh-CN) · [下载 Windows 版](https://github.com/shihaitian/yue-reader/releases/tag/v1.2.2) · [Build / Development (English)](../README.md#run-and-build)
 
 ![Yue](../md-reader/website/screenshots/reader-zh-CN.png)
 

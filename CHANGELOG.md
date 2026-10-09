@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.2.2 — 2026-10-09 — Faster opening
+
+- Remove the repeatable two-second lookup delay for the internal Windows host while retaining the same origin, documents, highlights and preferences.
+- Read command-line files while WebView2 initializes and render the requested file directly on first load.
+- Restore the document library in the background; save imported files without blocking their display. Load cached images only when referenced.
+- Avoid scanning unannotated documents for highlights and remove the idle gap between native file-open requests.
+- Keep the guarded, opaque first frame and the shared web/offline/Windows interface.
+- This remains an unsigned public preview; signing still requires a verified publisher identity.
+
 ## 1.2.1 — 2026-10-08 — Typography refinement
 
 - Use classic Georgia for Latin text before CJK serif fallbacks; recognize Noto Serif SC and Source Han Serif SC when installed.
